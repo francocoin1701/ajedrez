@@ -28,6 +28,8 @@ def main():
     clock = p.time.Clock()
     screen.fill(p.Color("white"))
     gs = chessEngien.GameState()
+    validMoves = gs.getValidMoves()
+    madeMove = False
     loadImages()
     sqSelec = ()
     playerClicks = []
@@ -41,23 +43,33 @@ def main():
 
             elif e.type == p.MOUSEBUTTONDOWN:
                 locations = p.mouse.get_pos()
-                print(locations)
                 col = locations[0]//SQ_SIZE
                 row = locations[1]//SQ_SIZE
-                if sqSelec == (col, row):
+                if sqSelec == (row, col):
                     sqSelec = ()
                     playerClicks = []
 
                 else:
-                    sqSelec = (col, row)
+                    sqSelec = (row, col)
                     playerClicks.append(sqSelec)    
 
                 if len(playerClicks) == 2:
-                    move = chessEngien.move(playerClicks[0],playerClicks[1],gs.board)
+                    move = chessEngien.Move(playerClicks[0],playerClicks[1],gs.board)
                     print(move.getChessNotation())
-                    gs.makeMove(move)
+                    if move in validMoves:
+                        gs.makeMove(move)
+                        madeMove = True                      
+                    
                     sqSelec = ()
-                    playerClicks = []    
+                    playerClicks = []
+
+            elif e.type == p.KEYDOWN:
+                if e.key == p.K_z:
+                    gs.undoMove()
+                    madeMove = True
+        if madeMove:
+            validMoves = gs.getValidMoves()
+            madeMove = False
         
         drawGameState(screen, gs)
         clock.tick(MAX_FPS)
@@ -84,9 +96,9 @@ def drawBoard(screen):
 def drawPices(screen, board):
     for r in range(DIMENCIONS):
         for c in range(DIMENCIONS):
-            piece = board[c][r]
+            piece = board[r][c]
             if piece != "--":
-                screen.blit(IMAGES[piece],p.Rect(r*SQ_SIZE, c*SQ_SIZE, SQ_SIZE, SQ_SIZE))
+                screen.blit(IMAGES[piece],p.Rect(c*SQ_SIZE, r*SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
 
 if __name__ == "__main__":
